@@ -13,6 +13,11 @@ def get_windows_devices_to_change() -> list:
     current_output_device = re.search(r'ID\s*: (\{.*?\}\.\{.*?\})', current_output).group(1)
     current_input_device = re.search(r'ID\s*: (\{.*?\}\.\{.*?\})', current_input).group(1)
 
+    with open('default_devices.py', 'w') as f:
+        _ = {'input': current_input_device.strip(), 'output': current_output_device.strip()}
+        f.write(f"{_}")
+
+
     command = "Get-AudioDevice -List"
     result = subprocess.run(["powershell", "-Command", command], shell=True, stdout=subprocess.PIPE, text=True)
     audio_devices_list = result.stdout.split("\n\n")
@@ -67,20 +72,20 @@ def change_devices(revert: bool = False):
         if revert is False:
             devices_to_change = get_windows_devices_to_change()
             for device in devices_to_change:
-                result = subprocess.run(["powershell", "-Command", f"Set-AudioDevice -ID '{device}'"], shell=True,
+                subprocess.run(["powershell", "-Command", f"Set-AudioDevice -ID '{device}'"], shell=True,
                                         stdout=subprocess.PIPE, text=True)
-                print(result.stdout)
         else:
             with open('default_devices.py', 'r') as f:
                 devices = eval(f.readline())
                 win_output = devices['output']
                 win_input = devices['input']
-            result = subprocess.run(["powershell", "-Command", f"Set-AudioDevice -ID '{win_output}'"], shell=True,
+            subprocess.run(["powershell", "-Command", f"Set-AudioDevice -ID '{win_output}'"], shell=True,
                                     stdout=subprocess.PIPE, text=True)
-            result = subprocess.run(["powershell", "-Command", f"Set-AudioDevice -ID '{win_input}'"], shell=True,
+            subprocess.run(["powershell", "-Command", f"Set-AudioDevice -ID '{win_input}'"], shell=True,
                                     stdout=subprocess.PIPE, text=True)
 
 
 if __name__ == '__main__':
     change_devices(True)
+
 
